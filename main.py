@@ -6,11 +6,7 @@ from typing import List
 from scispacy.abbreviation import AbbreviationDetector
 from scispacy.linking import EntityLinker
 
-nlp = spacy.load("en_core_sci_sm")
-nlp.add_pipe("abbreviation_detector")
-
-nlp.add_pipe("scispacy_linker", config={
-             "resolve_abbreviations": True, "linker_name": "umls"})
+nlp = spacy.load("en_core_sci_sm", disable=["tok2vec", "tagger", "attribute_ruler", "lemmatizer", "parser"])
 
 app = FastAPI()
 
