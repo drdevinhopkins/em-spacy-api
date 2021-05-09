@@ -12,8 +12,23 @@ import pandas as pd
 from scispacy.abbreviation import AbbreviationDetector
 from scispacy.linking import EntityLinker
 
+from negspacy.negation import Negex
+from negspacy.termsets import termset
+
+
 nlp = spacy.load("en_core_sci_sm", disable=[
-                 "tok2vec", "tagger", "attribute_ruler", "lemmatizer", "parser"])
+                 "tok2vec", "tagger", "attribute_ruler", "lemmatizer"])
+
+
+ts = termset("en_clinical_sensitive")
+nlp.add_pipe(
+    "negex",
+    config={
+        "chunk_prefix": ["no", "denies"],
+    },
+    last=True,
+)
+
 
 app = FastAPI()
 
@@ -58,6 +73,7 @@ class EntityOut(BaseModel):
     type: str
     text: str
     cui: str
+    negation: bool
 
 
 class EntitiesOut(BaseModel):
@@ -75,6 +91,9 @@ def read_entities(user_request_in: UserRequestIn):
                 "end": ent.end_char,
                 "type": ent.label_,
                 "text": ent.text,
-                "cui": atom_to_cui(ent.text, tgt)} for ent in doc.ents
+                "cui": atom_to_cui(ent.text, tgt),
+                "negation": ent._.negex
+            } for ent in doc.ents
+
         ]
     }
